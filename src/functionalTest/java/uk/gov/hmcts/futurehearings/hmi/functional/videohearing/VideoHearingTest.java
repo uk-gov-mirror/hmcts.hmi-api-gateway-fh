@@ -2,7 +2,6 @@ package uk.gov.hmcts.futurehearings.hmi.functional.videohearing;
 
 import static uk.gov.hmcts.futurehearings.hmi.functional.common.header.factory.HeaderFactory.createStandardHMIHeader;
 
-import org.junit.Ignore;
 import uk.gov.hmcts.futurehearings.hmi.Application;
 import uk.gov.hmcts.futurehearings.hmi.functional.common.test.FunctionalTest;
 import uk.gov.hmcts.futurehearings.hmi.functional.videohearing.steps.VideoHearingSteps;
@@ -49,7 +48,7 @@ public class VideoHearingTest extends FunctionalTest {
 
     @Test
     public void testCreateVideoHearingWithEmptyPayload() {
-        headersAsMap = createStandardHMIHeader("VH");
+        headersAsMap = createStandardHMIHeader("EMULATOR");
         videoHearingSteps.shouldRequestVideoHearingWithInvalidPayload(videohearingsRootContext,
                 headersAsMap,
                 authorizationToken, HttpMethod.POST,
@@ -58,7 +57,7 @@ public class VideoHearingTest extends FunctionalTest {
 
     @Test
     public void testAmendVideoHearingWithEmptyPayload() {
-        headersAsMap = createStandardHMIHeader("VH");
+        headersAsMap = createStandardHMIHeader("EMULATOR");
         videohearings_idRootContext = String.format(videohearings_idRootContext, new Random().nextInt(99999999));
         videoHearingSteps.shouldAmendVideoHearingWithInvalidPayload(videohearings_idRootContext,
                 headersAsMap,
@@ -68,7 +67,7 @@ public class VideoHearingTest extends FunctionalTest {
 
     @Test
     public void testDeleteVideoHearing() {
-        headersAsMap = createStandardHMIHeader("VH");
+        headersAsMap = createStandardHMIHeader("EMULATOR");
         videohearings_idRootContext = String.format(videohearings_idRootContext, new Random().nextInt(99999999));
         videoHearingSteps.shouldDeleteVideoHearing(videohearings_idRootContext,
                 headersAsMap,
@@ -78,24 +77,14 @@ public class VideoHearingTest extends FunctionalTest {
 
     @Test
     public void testGetVideoHearing() {
-        headersAsMap = createStandardHMIHeader("VH");
-        Map<String, String> queryParameters = new HashMap<>();
+        headersAsMap = createStandardHMIHeader("EMULATOR");
+        Map<String, String> queryParameters = new HashMap<String, String>();
         queryParameters.put("username", String.valueOf(new Random().nextInt(99999999)));
+        queryParameters.put("TEST", "TEST");
 
         videoHearingSteps.performVideoHearingGetByUsername(videohearingsRootContext,
                 headersAsMap,
                 authorizationToken,
                 queryParameters);
-    }
-
-    @Test
-    @Ignore("Ignored due to response")
-    public void testGetVideoHearingById() {
-        headersAsMap = createStandardHMIHeader("VH");
-        String hearingId = String.valueOf(new Random().nextInt(99999999));
-        videohearings_idRootContext = String.format(videohearings_idRootContext, hearingId);
-        videoHearingSteps.performVideoHearingGetByHearingId(videohearings_idRootContext,
-                headersAsMap,
-                authorizationToken);
     }
 }

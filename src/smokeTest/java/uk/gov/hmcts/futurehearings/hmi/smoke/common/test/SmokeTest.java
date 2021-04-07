@@ -1,18 +1,20 @@
 package uk.gov.hmcts.futurehearings.hmi.smoke.common.test;
 
+import static io.restassured.RestAssured.given;
 import static io.restassured.config.EncoderConfig.encoderConfig;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static uk.gov.hmcts.futurehearings.hmi.smoke.common.header.factory.HeaderFactory.createStandardHMIHeader;
 import static uk.gov.hmcts.futurehearings.hmi.smoke.common.security.OAuthTokenGenerator.generateOAuthToken;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.TestInfo;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import uk.gov.hmcts.futurehearings.hmi.Application;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import io.restassured.RestAssured;
+import io.restassured.response.Response;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,7 +34,7 @@ import org.springframework.test.context.ActiveProfiles;
 public abstract class SmokeTest {
 
     @Value("${targetInstance}")
-    private String targetInstance;
+    protected String targetInstance;
 
     @Value("${token_apiURL}")
     private String token_apiURL;
@@ -52,13 +54,16 @@ public abstract class SmokeTest {
     @Value("${scope}")
     private String scope;
 
-    private Map<String, String> headersAsMap = new HashMap<String,String>();
+    protected Map<String, String> headersAsMap = new HashMap<String,String>();
 
-    private String authorizationToken;
+    protected String authorizationToken;
 
-    private String rootContext;
+    protected String rootContext;
 
-    private String destinationSystem = "MOCK";
+    protected Map<String, String> params;
+
+    private final String DESTINATION_SYSTEM_MOCK = "MOCK";
+    private final String DESTINATION_SYSTEM = DESTINATION_SYSTEM_MOCK;
 
     @BeforeAll
     public void beforeAll(TestInfo info) {
@@ -67,6 +72,7 @@ public abstract class SmokeTest {
 
     @BeforeAll
     public void initialiseValues() throws Exception {
+
         RestAssured.baseURI = targetInstance;
         RestAssured.useRelaxedHTTPSValidation();
         RestAssured.config = RestAssured.config()
@@ -80,6 +86,50 @@ public abstract class SmokeTest {
                 HttpStatus.OK);
         this.setAuthorizationToken(authorizationToken);
 
-        headersAsMap = createStandardHMIHeader(destinationSystem);
+        headersAsMap = createStandardHMIHeader("MOCK");
+    }
+
+    @BeforeEach
+    public void beforeEach(TestInfo info) {
+        log.debug("Before execution : " + info.getTestMethod().get().getName());
+    }
+
+    @AfterEach
+    public void afterEach(TestInfo info) {
+        log.debug("After execution : " + info.getTestMethod().get().getName());
+    }
+
+    @AfterAll
+    public void afterAll(TestInfo info) {
+        log.debug("Test execution Class Completed: " + info.getTestClass().get().getName());
+    }
+
+    @Test
+    @DisplayName("Smoke Test to Test the Endpoint for the HMI Root Context")
+    void testSuccessfulHmiApiGet() {
+
+        Response response = null;
+
+        if (Objects.isNull(params) || params.size() == 0) {
+            response = given()
+                    .headers(headersAsMap)
+                    .auth().oauth2(getAuthorizationToken())
+                    .basePath(getRootContext())
+                    .when().get();
+        } else {
+            log.debug("Query params :" + params);
+            response = given()
+                    .queryParams(params)
+                    .headers(headersAsMap)
+                    .auth().oauth2(getAuthorizationToken())
+                    .basePath(getRootContext())
+                    .when().get();
+        }
+
+        if (response.getStatusCode() != 200) {
+            log.debug(" The value of the Response Status " + response.getStatusCode());
+            log.debug(" The value of the Response body " + response.getBody().prettyPrint());
+        }
+        assertEquals(HttpStatus.OK.value(), response.getStatusCode());
     }
 }
