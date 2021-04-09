@@ -70,7 +70,7 @@ public class VideoHearingSteps {
         Response response = callRestEndpointWithPayload(apiURL,
                 headersAsMap,
                 authorizationToken,
-                null, HttpMethod.GET,HttpStatus.OK);
+                null, HttpMethod.GET,HttpStatus.BAD_REQUEST);
         return response;
     }
 }
